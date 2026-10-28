@@ -21,6 +21,19 @@
     <string name="section_face">Default face for new widgets</string>
     <string name="section_add">Add a widget</string>
     <string name="section_battery">Keep seconds ticking (OnePlus 15 / Galaxy S23 Ultra)</string>
+    <string name="section_status">Seconds in the status bar &amp; notification panel</string>
+    <string name="notif_clock_label">Live seconds clock in notifications</string>
+    <string name="notif_clock_desc">Turns the always-on service notification into a clock showing 12:45:08 with the date — works on every phone.</string>
+    <string name="status_seconds_enable">Stock status-bar clock: show seconds</string>
+    <string name="status_seconds_disable">Stock status-bar clock: hide seconds (revert)</string>
+    <string name="status_seconds_desc">Flips the hidden Android “clock seconds” switch, which SystemUI watches live. Needs a one-time ADB grant (no root). Heavily-skinned clocks (OneUI / ColorOS) may ignore this key — if the top-left clock doesn\'t change after granting, use the notification-panel seconds clock above instead.</string>
+    <string name="adb_dialog_title">One-time ADB setup</string>
+    <string name="adb_dialog_text">Connect the phone to a computer and run this once:\n\nadb shell pm grant com.secondsclock android.permission.WRITE_SECURE_SETTINGS\n\nIt grants Seconds Clock the ability to change hidden system-UI settings (the same permission SystemUI Tuner apps use). Nothing else changes. Then tap the button again.</string>
+    <string name="action_copy">Copy the command</string>
+    <string name="action_close">Close</string>
+    <string name="toast_copied">Command copied</string>
+    <string name="toast_status_applied">Done. If the status-bar clock now ticks seconds your ROM supports it — otherwise it ignores the key and the notification-panel clock is your seconds clock.</string>
+    <string name="toast_fgs_start">Notification clock running — swipe down to see 12:45:08</string>
     <string name="face_analog">Analog</string>
     <string name="face_digital">Digital</string>
     <string name="time_auto">Follow system</string>
@@ -37,7 +50,7 @@
     <string name="hint_oneplus">OnePlus/ColorOS: Batteries → Seconds Clock → Allow Auto-launch &amp; Don\'t optimize.\nSamsung/OneUI: Device care → Battery → Background usage limits → add Seconds Clock to Never sleeping apps.</string>
     <string name="toast_pin_unsupported">Your launcher can\'t pin widgets automatically — long-press the home screen → Widgets → Seconds Clock</string>
     <string name="toast_refreshed">Service running and widgets refreshed</string>
-    <string name="footer">Seconds Clock v1.0.0 — analog &amp; digital, 1×1 · 2×1 · 2×2 · 3×3, live seconds</string>
+    <string name="footer">Seconds Clock v1.1.0 — analog &amp; digital, 1×1 · 2×1 · 2×2 · 3×3, live seconds</string>
 
     <string name="config_title">Set up clock widget</string>
     <string name="config_face">Face</string>

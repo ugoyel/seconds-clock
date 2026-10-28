@@ -19,7 +19,7 @@ hand / seconds digits**, tuned for OnePlus (15) and Samsung (Galaxy S23 Ultra) h
 ## Install
 
 Grab the signed APK from [Releases](https://github.com/ugoyel/seconds-clock/releases/latest)
-(`seconds-clock-v1.0.0.apk`) or clone & build it yourself:
+(`seconds-clock-v1.1.0.apk`) or clone & build it yourself:
 
 ```bash
 ./gradlew assembleDebug   # APK: app/build/outputs/apk/debug/app-debug.apk
@@ -40,6 +40,19 @@ are the usual reason a seconds hand freezes:
    - **Samsung/OneUI (S23 Ultra)**: Battery → Background usage limits → add *Seconds Clock* to
      **Never sleeping apps** (the in-app *Auto-launch* button tries to open that screen directly).
 3. Optional: tap **Restart clock service & refresh widgets** after rebooting.
+
+## Seconds beyond the widgets (v1.1.0)
+
+- **Live seconds clock in the notification panel** — flip the toggle in the app and the always-on
+  service notification turns into `12:45:08 · Wed, Oct 28`. Works on OnePlus/Samsung directly.
+- **Stock status-bar clock seconds** — the hidden AOSP switch `Settings.Secure clock_seconds`
+  (watched live by SystemUI). One-time setup: run the ADB command the app shows you (or its
+  *Copy the command* button), then tap **Stock status-bar clock: show seconds**:
+  ```
+  adb shell pm grant com.secondsclock android.permission.WRITE_SECURE_SETTINGS
+  ```
+  No root, and the same switch SystemUI Tuner uses. Caveat: heavily-skinned clocks — some
+  OneUI/ColorOS builds — ignore the key; then the notification-panel clock is your seconds clock.
 
 ## Usage
 

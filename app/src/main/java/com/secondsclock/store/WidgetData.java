@@ -168,7 +168,7 @@ public final class WidgetData {
     }
 
     public static void ensureService(Context ctx) {
-        if (hasAnalogWidgets(ctx)) {
+        if (hasAnalogWidgets(ctx) || Store.notifClock(ctx)) {
             ClockTickService.start(ctx);
         }
     }

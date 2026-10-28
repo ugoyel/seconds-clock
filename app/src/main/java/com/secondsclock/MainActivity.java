@@ -13,6 +13,7 @@ import android.provider.Settings;
 import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.secondsclock.service.ClockTickService;
@@ -20,6 +21,8 @@ import com.secondsclock.store.Store;
 import com.secondsclock.store.WidgetData;
 
 public class MainActivity extends android.app.Activity {
+
+    private Button statusButton;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -66,6 +69,87 @@ public class MainActivity extends android.app.Activity {
             ClockTickService.start(this);
             Toast.makeText(this, R.string.toast_refreshed, Toast.LENGTH_SHORT).show();
         });
+
+        Switch notifClock = findViewById(R.id.sw_notif_clock);
+        notifClock.setChecked(Store.notifClock(this));
+        notifClock.setOnCheckedChangeListener((btn, on) -> {
+            Store.setNotifClock(this, on);
+            if (on) {
+                ClockTickService.start(this);
+                Toast.makeText(this, R.string.toast_fgs_start, Toast.LENGTH_SHORT).show();
+            } else {
+                ClockTickService.stopIfUnused(this);
+            }
+        });
+
+        statusButton = findViewById(R.id.b_status_seconds);
+        statusButton.setOnClickListener(v -> onStatusSeconds());
+        refreshStatusButton();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshStatusButton();
+    }
+
+    private boolean statusSecondsGranted() {
+        return checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void refreshStatusButton() {
+        if (statusButton == null) {
+            return;
+        }
+        boolean on = false;
+        if (statusSecondsGranted()) {
+            try {
+                on = android.provider.Settings.Secure.getInt(
+                        getContentResolver(), "clock_seconds", 0) == 1;
+            } catch (Exception ignore) {
+                // default off
+            }
+        }
+        statusButton.setText(on ? R.string.status_seconds_disable : R.string.status_seconds_enable);
+    }
+
+    private void onStatusSeconds() {
+        if (!statusSecondsGranted()) {
+            showAdbDialog();
+            return;
+        }
+        try {
+            android.content.ContentResolver cr = getContentResolver();
+            int cur = android.provider.Settings.Secure.getInt(cr, "clock_seconds", 0);
+            if (cur == 0) {
+                // write 0 then 1 so SystemUI picks the flip up even on stubborn builds
+                android.provider.Settings.Secure.putInt(cr, "clock_seconds", 0);
+                android.provider.Settings.Secure.putInt(cr, "clock_seconds", 1);
+                Toast.makeText(this, R.string.toast_status_applied, Toast.LENGTH_LONG).show();
+            } else {
+                android.provider.Settings.Secure.putInt(cr, "clock_seconds", 0);
+            }
+        } catch (SecurityException e) {
+            showAdbDialog();
+            return;
+        }
+        refreshStatusButton();
+    }
+
+    private void showAdbDialog() {
+        final String cmd = "adb shell pm grant com.secondsclock android.permission.WRITE_SECURE_SETTINGS";
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(R.string.adb_dialog_title)
+                .setMessage(R.string.adb_dialog_text)
+                .setPositiveButton(R.string.action_copy, (d, w) -> {
+                    android.content.ClipboardManager cm =
+                            (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                    cm.setPrimaryClip(android.content.ClipData.newPlainText("adb grant", cmd));
+                    Toast.makeText(this, R.string.toast_copied, Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton(R.string.action_close, null)
+                .show();
     }
 
     private void bindAddButton(int buttonId, final int idx, int label) {

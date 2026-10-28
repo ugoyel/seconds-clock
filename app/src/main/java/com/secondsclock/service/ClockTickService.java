@@ -16,6 +16,7 @@ import android.os.Looper;
 import android.os.PowerManager;
 
 import com.secondsclock.R;
+import com.secondsclock.store.Store;
 import com.secondsclock.store.WidgetData;
 
 /**
@@ -40,9 +41,15 @@ public class ClockTickService extends Service {
         }
     }
 
-    /** Starts the ticker only when at least one analog widget needs it. */
+    public static void stopIfUnused(Context c) {
+        if (!(WidgetData.hasAnalogWidgets(c) || Store.notifClock(c))) {
+            c.stopService(new Intent(c, ClockTickService.class));
+        }
+    }
+
+    /** Starts the ticker only when at least one analog widget or the notification clock needs it. */
     public static void ensure(Context c) {
-        if (WidgetData.hasAnalogWidgets(c)) {
+        if (WidgetData.hasAnalogWidgets(c) || Store.notifClock(c)) {
             start(c);
         }
     }
@@ -50,17 +57,38 @@ public class ClockTickService extends Service {
     private final Runnable tick = new Runnable() {
         @Override
         public void run() {
-            if (!WidgetData.hasAnalogWidgets(ClockTickService.this)) {
+            boolean analogs = WidgetData.hasAnalogWidgets(ClockTickService.this);
+            boolean notif = Store.notifClock(ClockTickService.this);
+            if (!analogs && !notif) {
                 stopSelf();
                 return;
             }
             if (isScreenOn()) {
-                WidgetData.updateAnalogNow(ClockTickService.this);
+                if (analogs) {
+                    WidgetData.updateAnalogNow(ClockTickService.this);
+                }
+                if (notif) {
+                    updateNotificationClock();
+                }
             }
             long delay = 1000 - (System.currentTimeMillis() % 1000) + 15;
             handler.postDelayed(this, delay);
         }
     };
+
+    /** Rewrites the foreground notification every second: HH:mm:ss + date. */
+    private void updateNotificationClock() {
+        long now = System.currentTimeMillis();
+        Notification n = new Notification.Builder(this, CHANNEL)
+                .setContentTitle(new java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(new java.util.Date(now)))
+                .setContentText(new java.text.SimpleDateFormat("EEE, MMM d", java.util.Locale.US).format(new java.util.Date(now)))
+                .setSmallIcon(R.drawable.ic_stat_clock)
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .build();
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        nm.notify(NOTIF_ID, n);
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {

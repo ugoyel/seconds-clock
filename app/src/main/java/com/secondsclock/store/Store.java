@@ -56,4 +56,13 @@ public final class Store {
     public static boolean isAnalog(Context c, int id) {
         return FACE_ANALOG.equals(face(c, id));
     }
+
+    /** Live seconds clock shown as the always-on service notification. */
+    public static void setNotifClock(Context c, boolean on) {
+        sp(c).edit().putBoolean("notif_clock", on).apply();
+    }
+
+    public static boolean notifClock(Context c) {
+        return sp(c).getBoolean("notif_clock", false);
+    }
 }
