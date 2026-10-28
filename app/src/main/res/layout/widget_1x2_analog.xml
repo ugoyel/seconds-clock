@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_clock"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <FrameLayout
+        android:layout_width="92dp"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/dial"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:src="@drawable/dial" />
+
+        <ImageView
+            android:id="@+id/hour_hand"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:src="@drawable/hand_hour" />
+
+        <ImageView
+            android:id="@+id/minute_hand"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:src="@drawable/hand_minute" />
+
+        <ImageView
+            android:id="@+id/second_hand"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:src="@drawable/hand_second" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:gravity="start"
+        android:orientation="vertical">
+
+        <TextClock
+            android:id="@+id/time_main"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:format12Hour="h:mm:ss"
+            android:format24Hour="HH:mm:ss"
+            android:fontFamily="sans-serif-light"
+            android:includeFontPadding="false"
+            android:letterSpacing="0.02"
+            android:textColor="@color/white"
+            android:textSize="23sp" />
+
+        <TextClock
+            android:id="@+id/date_line"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:format12Hour="EEE, MMM d"
+            android:format24Hour="EEE, MMM d"
+            android:includeFontPadding="false"
+            android:textColor="@color/date_gray"
+            android:textSize="11sp" />
+    </LinearLayout>
+</LinearLayout>

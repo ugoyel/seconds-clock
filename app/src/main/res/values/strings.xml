@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Seconds Clock</string>
+
+    <string name="w_1x1">Clock 1×1</string>
+    <string name="w_1x2">Clock 2×1</string>
+    <string name="w_2x2">Clock 2×2</string>
+    <string name="w_3x3">Clock 3×3</string>
+    <string name="w_1x1_desc">Compact clock with seconds</string>
+    <string name="w_1x2_desc">Wide clock with seconds</string>
+    <string name="w_2x2_desc">Analog dial with seconds hand</string>
+    <string name="w_3x3_desc">Large analog dial with seconds hand</string>
+
+    <string name="notif_channel">Clock widgets</string>
+    <string name="notif_channel_desc">Keeps the seconds hand of the clock widgets ticking</string>
+    <string name="notif_title">Clock widgets are running</string>
+    <string name="notif_text">Analog seconds hand updates every second</string>
+
+    <string name="main_title">Seconds Clock</string>
+    <string name="main_subtitle">Home screen clocks with a live seconds hand — tuned for OnePlus &amp; Samsung</string>
+    <string name="section_face">Default face for new widgets</string>
+    <string name="section_add">Add a widget</string>
+    <string name="section_battery">Keep seconds ticking (OnePlus 15 / Galaxy S23 Ultra)</string>
+    <string name="face_analog">Analog</string>
+    <string name="face_digital">Digital</string>
+    <string name="time_auto">Follow system</string>
+    <string name="time_24">Force 24-hour</string>
+    <string name="time_12">Force 12-hour</string>
+    <string name="add_1x1">Add 1×1</string>
+    <string name="add_1x2">Add 2×1</string>
+    <string name="add_2x2">Add 2×2</string>
+    <string name="add_3x3">Add 3×3</string>
+    <string name="btn_battery">Battery optimization settings</string>
+    <string name="btn_autostart">Auto-launch / background settings</string>
+    <string name="btn_refresh">Restart clock service &amp; refresh widgets</string>
+    <string name="hint_pin">Or long-press the home screen → Widgets → Seconds Clock</string>
+    <string name="hint_oneplus">OnePlus/ColorOS: Batteries → Seconds Clock → Allow Auto-launch &amp; Don\'t optimize.\nSamsung/OneUI: Device care → Battery → Background usage limits → add Seconds Clock to Never sleeping apps.</string>
+    <string name="toast_pin_unsupported">Your launcher can\'t pin widgets automatically — long-press the home screen → Widgets → Seconds Clock</string>
+    <string name="toast_refreshed">Service running and widgets refreshed</string>
+    <string name="footer">Seconds Clock v1.0.0 — analog &amp; digital, 1×1 · 2×1 · 2×2 · 3×3, live seconds</string>
+
+    <string name="config_title">Set up clock widget</string>
+    <string name="config_face">Face</string>
+    <string name="config_time">Time format</string>
+    <string name="config_save">Save</string>
+    <string name="config_cancel">Cancel</string>
+</resources>
