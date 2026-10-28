@@ -41,18 +41,22 @@ are the usual reason a seconds hand freezes:
      **Never sleeping apps** (the in-app *Auto-launch* button tries to open that screen directly).
 3. Optional: tap **Restart clock service & refresh widgets** after rebooting.
 
-## Seconds beyond the widgets (v1.1.0)
+## Seconds beyond the widgets (v1.2.0)
 
 - **Live seconds clock in the notification panel** — flip the toggle in the app and the always-on
   service notification turns into `12:45:08 · Wed, Oct 28`. Works on OnePlus/Samsung directly.
-- **Stock status-bar clock seconds** — the hidden AOSP switch `Settings.Secure clock_seconds`
-  (watched live by SystemUI). One-time setup: run the ADB command the app shows you (or its
-  *Copy the command* button), then tap **Stock status-bar clock: show seconds**:
-  ```
-  adb shell pm grant com.secondsclock android.permission.WRITE_SECURE_SETTINGS
-  ```
-  No root, and the same switch SystemUI Tuner uses. Caveat: heavily-skinned clocks — some
-  OneUI/ColorOS builds — ignore the key; then the notification-panel clock is your seconds clock.
+- **Stock status-bar clock seconds — fully automatic** (v1.2.0): tap
+  *Stock status-bar clock: show seconds* in the app. One-time setup it walks you through,
+  **no computer, no typing**:
+  1. The app asks you to install **Shizuku** once (free, open-source helper on Play).
+  2. Shizuku pairs on the phone itself: Developer options → Wireless debugging → *Pair* —
+     the code shows on your own screen.
+  3. From then on the app flips the hidden AOSP switch `Settings.Secure clock_seconds`
+     (watched live by SystemUI) by itself — enable and disable both from the same button.
+  - Prefer the classic way? The same dialog offers a copyable
+    `adb shell pm grant com.secondsclock android.permission.WRITE_SECURE_SETTINGS`.
+  - Caveat: heavily-skinned clocks — some OneUI/ColorOS builds — ignore the key; then the
+    notification-panel clock is your seconds clock.
 
 ## Usage
 

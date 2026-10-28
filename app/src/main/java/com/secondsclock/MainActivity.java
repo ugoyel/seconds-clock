@@ -7,7 +7,8 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Button;
@@ -17,21 +18,74 @@ import android.widget.Switch;
 import android.widget.Toast;
 
 import com.secondsclock.service.ClockTickService;
+import com.secondsclock.shizuku.ClockUserService;
 import com.secondsclock.store.Store;
 import com.secondsclock.store.WidgetData;
 
+import rikka.shizuku.Shizuku;
+
 public class MainActivity extends android.app.Activity {
 
+    private static final int REQ_SHIZUKU = 9888;
+    private static final String SHIZUKU_PKG = "moe.shizuku.privileged.api";
+    private static final String SECURE_KEY = "clock_seconds";
+
     private Button statusButton;
+    private Boolean pendingEnable;
+    private final Handler ui = new Handler(Looper.getMainLooper());
+    private IShizukuClock clockService;
+
+    private final Shizuku.UserServiceArgs userServiceArgs = new Shizuku.UserServiceArgs(
+            new ComponentName(getPackageName(), ClockUserService.class.getCanonicalName()))
+            .processNameSuffix("sec_clock")
+            .version(1);
+
+    private final android.content.ServiceConnection userServiceConnection =
+            new android.content.ServiceConnection() {
+                @Override
+                public void onServiceConnected(ComponentName name, android.os.IBinder binder) {
+                    clockService = IShizukuClock.Stub.asInterface(binder);
+                    Boolean run = pendingEnable;
+                    pendingEnable = null;
+                    if (run != null) {
+                        runClock(run);
+                    }
+                }
+
+                @Override
+                public void onServiceDisconnected(ComponentName name) {
+                    clockService = null;
+                }
+            };
+
+    private final Shizuku.OnRequestPermissionResultListener shizukuListener =
+            new Shizuku.OnRequestPermissionResultListener() {
+                @Override
+                public void onRequestPermissionResult(int requestCode, int grantResult) {
+                    if (requestCode != REQ_SHIZUKU) {
+                        return;
+                    }
+                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                        Boolean run = pendingEnable;
+                        pendingEnable = null;
+                        if (run != null) {
+                            bindUserClock(run);
+                        }
+                    } else {
+                        Toast.makeText(MainActivity.this, "Shizuku permission denied", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            };
 
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
-        if (Build.VERSION.SDK_INT >= 33
+        if (android.os.Build.VERSION.SDK_INT >= 33
                 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS }, 1);
         }
         setContentView(R.layout.activity_main);
+        Shizuku.addRequestPermissionResultListener(shizukuListener);
 
         RadioGroup face = findViewById(R.id.rg_default_face);
         RadioGroup time = findViewById(R.id.rg_default_time);
@@ -88,68 +142,15 @@ public class MainActivity extends android.app.Activity {
     }
 
     @Override
+    protected void onDestroy() {
+        Shizuku.removeRequestPermissionResultListener(shizukuListener);
+        super.onDestroy();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         refreshStatusButton();
-    }
-
-    private boolean statusSecondsGranted() {
-        return checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS)
-                == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private void refreshStatusButton() {
-        if (statusButton == null) {
-            return;
-        }
-        boolean on = false;
-        if (statusSecondsGranted()) {
-            try {
-                on = android.provider.Settings.Secure.getInt(
-                        getContentResolver(), "clock_seconds", 0) == 1;
-            } catch (Exception ignore) {
-                // default off
-            }
-        }
-        statusButton.setText(on ? R.string.status_seconds_disable : R.string.status_seconds_enable);
-    }
-
-    private void onStatusSeconds() {
-        if (!statusSecondsGranted()) {
-            showAdbDialog();
-            return;
-        }
-        try {
-            android.content.ContentResolver cr = getContentResolver();
-            int cur = android.provider.Settings.Secure.getInt(cr, "clock_seconds", 0);
-            if (cur == 0) {
-                // write 0 then 1 so SystemUI picks the flip up even on stubborn builds
-                android.provider.Settings.Secure.putInt(cr, "clock_seconds", 0);
-                android.provider.Settings.Secure.putInt(cr, "clock_seconds", 1);
-                Toast.makeText(this, R.string.toast_status_applied, Toast.LENGTH_LONG).show();
-            } else {
-                android.provider.Settings.Secure.putInt(cr, "clock_seconds", 0);
-            }
-        } catch (SecurityException e) {
-            showAdbDialog();
-            return;
-        }
-        refreshStatusButton();
-    }
-
-    private void showAdbDialog() {
-        final String cmd = "adb shell pm grant com.secondsclock android.permission.WRITE_SECURE_SETTINGS";
-        new android.app.AlertDialog.Builder(this)
-                .setTitle(R.string.adb_dialog_title)
-                .setMessage(R.string.adb_dialog_text)
-                .setPositiveButton(R.string.action_copy, (d, w) -> {
-                    android.content.ClipboardManager cm =
-                            (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                    cm.setPrimaryClip(android.content.ClipData.newPlainText("adb grant", cmd));
-                    Toast.makeText(this, R.string.toast_copied, Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton(R.string.action_close, null)
-                .show();
     }
 
     private void bindAddButton(int buttonId, final int idx, int label) {
@@ -167,6 +168,150 @@ public class MainActivity extends android.app.Activity {
             }
         });
     }
+
+    // ---------------- status-bar seconds ----------------
+
+    private boolean appHasWriteSecure() {
+        return checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private int readSecure() {
+        try {
+            return Settings.Secure.getInt(getContentResolver(), SECURE_KEY, 0);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private void refreshStatusButton() {
+        if (statusButton == null) {
+            return;
+        }
+        boolean on = readSecure() == 1;
+        statusButton.setText(on ? R.string.status_seconds_disable : R.string.status_seconds_enable);
+    }
+
+    /** App runs itself when possible, otherwise it walks the user through the on-device helper. */
+    private void onStatusSeconds() {
+        boolean wantOn = readSecure() != 1;
+        if (appHasWriteSecure()) {
+            applyDirect(wantOn);
+            refreshStatusButton();
+            return;
+        }
+        applyViaShizuku(wantOn);
+    }
+
+    private void applyDirect(boolean enable) {
+        try {
+            Settings.Secure.putInt(getContentResolver(), SECURE_KEY, 0);
+            if (enable) {
+                Settings.Secure.putInt(getContentResolver(), SECURE_KEY, 1);
+            }
+            Toast.makeText(this, R.string.toast_status_applied, Toast.LENGTH_LONG).show();
+        } catch (SecurityException e) {
+            applyViaShizuku(enable);
+        }
+    }
+
+    private void applyViaShizuku(boolean enable) {
+        pendingEnable = enable;
+        if (!Shizuku.pingBinder()) {
+            showShizukuGuide();
+            return;
+        }
+        if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+            try {
+                Shizuku.requestPermission(REQ_SHIZUKU);
+            } catch (Throwable t) {
+                showShizukuGuide();
+                return;
+            }
+            return; // continues in the permission-result listener
+        }
+        if (clockService != null) {
+            Boolean run = pendingEnable;
+            pendingEnable = null;
+            runClock(run);
+        } else {
+            try {
+                Shizuku.bindUserService(userServiceArgs, userServiceConnection);
+            } catch (Throwable t) {
+                showShizukuGuide();
+            }
+        }
+    }
+
+    private void bindUserClock(boolean enable) {
+        pendingEnable = enable;
+        if (clockService != null) {
+            Boolean run = pendingEnable;
+            pendingEnable = null;
+            runClock(run);
+            return;
+        }
+        try {
+            Shizuku.bindUserService(userServiceArgs, userServiceConnection);
+        } catch (Throwable t) {
+            showShizukuGuide();
+        }
+    }
+
+    /** Flips 0 then 1 so SystemUI notices the change even on stubborn builds. */
+    private void runClock(boolean enable) {
+        try {
+            clockService.setClockSeconds(0);
+            if (enable) {
+                clockService.setClockSeconds(1);
+            }
+        } catch (Throwable t) {
+            clockService = null;
+            showShizukuGuide();
+            return;
+        }
+        Toast.makeText(this, R.string.toast_status_applied, Toast.LENGTH_LONG).show();
+        ui.postDelayed(this::refreshStatusButton, 700);
+    }
+
+    private void showShizukuGuide() {
+        String pkg = SHIZUKU_PKG;
+        Intent launch = getPackageManager().getLaunchIntentForPackage(pkg);
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(launch != null ? R.string.shizuku_start_needed_title : R.string.shizuku_missing_title)
+                .setMessage(launch != null ? R.string.shizuku_start_needed_text : R.string.shizuku_missing_text)
+                .setPositiveButton(launch != null ? R.string.btn_open_shizuku : R.string.btn_install_shizuku,
+                        (d, w) -> openShizuku())
+                .setNeutralButton(R.string.btn_copy_adb, (d, w) -> copyAdbCommand())
+                .setNegativeButton(R.string.action_close, null)
+                .show();
+    }
+
+    private void openShizuku() {
+        String pkg = SHIZUKU_PKG;
+        Intent launch = getPackageManager().getLaunchIntentForPackage(pkg);
+        try {
+            startActivity(launch != null ? launch
+                    : new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + pkg)));
+        } catch (ActivityNotFoundException e) {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("https://play.google.com/store/apps/details?id=" + pkg)));
+            } catch (Exception ignore) {
+                Toast.makeText(this, "Play Store not found", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void copyAdbCommand() {
+        final String cmd = "adb shell pm grant com.secondsclock android.permission.WRITE_SECURE_SETTINGS";
+        android.content.ClipboardManager cm =
+                (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        cm.setPrimaryClip(android.content.ClipData.newPlainText("adb grant", cmd));
+        Toast.makeText(this, R.string.toast_copied, Toast.LENGTH_SHORT).show();
+    }
+
+    // ---------------- battery / autostart helpers ----------------
 
     private void openBatteryOptimizations() {
         String pkg = getPackageName();

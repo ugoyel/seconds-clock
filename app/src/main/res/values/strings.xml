@@ -26,9 +26,17 @@
     <string name="notif_clock_desc">Turns the always-on service notification into a clock showing 12:45:08 with the date — works on every phone.</string>
     <string name="status_seconds_enable">Stock status-bar clock: show seconds</string>
     <string name="status_seconds_disable">Stock status-bar clock: hide seconds (revert)</string>
-    <string name="status_seconds_desc">Flips the hidden Android “clock seconds” switch, which SystemUI watches live. Needs a one-time ADB grant (no root). Heavily-skinned clocks (OneUI / ColorOS) may ignore this key — if the top-left clock doesn\'t change after granting, use the notification-panel seconds clock above instead.</string>
-    <string name="adb_dialog_title">One-time ADB setup</string>
-    <string name="adb_dialog_text">Connect the phone to a computer and run this once:\n\nadb shell pm grant com.secondsclock android.permission.WRITE_SECURE_SETTINGS\n\nIt grants Seconds Clock the ability to change hidden system-UI settings (the same permission SystemUI Tuner apps use). Nothing else changes. Then tap the button again.</string>
+    <string name="status_seconds_desc">Flips the hidden Android “clock seconds” switch, which SystemUI watches live. Fully automatic via Shizuku (no computer) — or one pasted ADB command if you prefer. Heavily-skinned clocks (OneUI / ColorOS) may ignore this key — if the top-left clock doesn\'t change, use the notification-panel seconds clock above instead.</string>
+    <string name="grant_dialog_title">Enable stock status-bar seconds</string>
+    <string name="grant_dialog_text">Seconds Clock can flip the hidden status-bar “seconds” switch for you — pick a path:\n\n• Automatic (Shizuku): no computer. One-time Shizuku install + on-screen pairing; the app does everything else.\n\n• Manual: copy the ADB command and run it from a PC.</string>
+    <string name="btn_shizuku_auto">Automatic (Shizuku) — recommended</string>
+    <string name="btn_copy_adb">Copy ADB command</string>
+    <string name="shizuku_missing_title">Install Shizuku once</string>
+    <string name="shizuku_missing_text">Shizuku is a free, open-source helper that lets trusted apps make system changes with a tap — no computer needed.\n\n1) Install it from Play\n2) Open Shizuku and follow its Start instructions (Wireless debugging pairing shows a code on your own phone)\n3) Come back here and tap the seconds button again — everything else is automatic.</string>
+    <string name="shizuku_start_needed_title">Shizuku is installed but not running yet</string>
+    <string name="shizuku_start_needed_text">Open Shizuku and tap Start (it pairs through Wireless debugging; it stays active until reboot). Then come back and tap the seconds button — Seconds Clock takes it from there.</string>
+    <string name="btn_install_shizuku">Install Shizuku</string>
+    <string name="btn_open_shizuku">Open Shizuku</string>
     <string name="action_copy">Copy the command</string>
     <string name="action_close">Close</string>
     <string name="toast_copied">Command copied</string>
@@ -50,7 +58,7 @@
     <string name="hint_oneplus">OnePlus/ColorOS: Batteries → Seconds Clock → Allow Auto-launch &amp; Don\'t optimize.\nSamsung/OneUI: Device care → Battery → Background usage limits → add Seconds Clock to Never sleeping apps.</string>
     <string name="toast_pin_unsupported">Your launcher can\'t pin widgets automatically — long-press the home screen → Widgets → Seconds Clock</string>
     <string name="toast_refreshed">Service running and widgets refreshed</string>
-    <string name="footer">Seconds Clock v1.1.0 — analog &amp; digital, 1×1 · 2×1 · 2×2 · 3×3, live seconds</string>
+    <string name="footer">Seconds Clock v1.2.0 — analog &amp; digital, 1×1 · 2×1 · 2×2 · 3×3, live seconds</string>
 
     <string name="config_title">Set up clock widget</string>
     <string name="config_face">Face</string>

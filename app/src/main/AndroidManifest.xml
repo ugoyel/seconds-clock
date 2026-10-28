@@ -41,6 +41,14 @@
                 android:value="Ticks home screen clock widgets every second so the seconds hand/seconds digits stay live" />
         </service>
 
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+
         <receiver
             android:name=".receiver.BootReceiver"
             android:exported="false">
